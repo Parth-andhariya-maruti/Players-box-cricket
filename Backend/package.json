@@ -5,8 +5,12 @@
   "author": "Parth Andhariya",
   "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": "20.X"
+  },
   "scripts": {
-    "dev": "npx nodemon index.js"
+    "dev": "npx nodemon index.js",
+    "build": "npx nodemon index.js"
   },
   "dependencies": {
     "date-fns": "^3.6.0",
