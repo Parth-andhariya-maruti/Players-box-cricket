@@ -1,30 +1,37 @@
 import mysql from "mysql2";
 import dotenv from "dotenv";
-import { getStartAndEndTImeFromDate } from './Utils/helper.js';
+import { getStartAndEndTImeFromDate } from "./Utils/helper.js";
 
 dotenv.config();
 
 const table_name = process.env.TABLE_NAME;
 
 //mysql database connection code
-const db = mysql
-  .createPool({
-    host: process.env.HOST,
-    user: process.env.USER_NAME,
-    port: process.env.PORT,
-    password: process.env.PASSWORD,
-    database: process.env.DATABASE,
-    timezone: 'Z'
-  })
-  .promise();
+const db = mysql.createPool({
+  host: process.env.HOST,
+  user: process.env.USER_NAME,
+  // port: process.env.PORT,
+  password: process.env.PASSWORD,
+  database: process.env.DATABASE,
+  timezone: "Z",
+});
 
-//get table data 
+db.getConnection((err, conn) => {
+  if (err) console.log(err);
+  console.log("Database Connected successfully");
+});
+
+db.promise();
+
+//get table data
 async function getBooking() {
-  const [rows] = await db.query(`SELECT * FROM ${table_name} ORDER BY date DESC`);
+  const [rows] = await db.query(
+    `SELECT * FROM ${table_name} ORDER BY date DESC`
+  );
   return rows;
 }
 
-//get perticuler record from table 
+//get perticuler record from table
 async function getBookingById(id) {
   const [rows] = await db.query(`SELECT * FROM ${table_name} WHERE id = ?`, [
     id,
@@ -32,35 +39,45 @@ async function getBookingById(id) {
   return rows[0];
 }
 
-//add record in table 
+//add record in table
 async function addBooking(payload) {
   const { name, date, hours } = payload;
   const { start_time, end_time } = getStartAndEndTImeFromDate(date, hours);
   const isAvailable = await checkAvailability(date, start_time, end_time);
 
   if (!isAvailable)
-    return { data: {}, message: "Selected Time window is already booked", pass: false };
+    return {
+      data: {},
+      message: "Selected Time window is already booked",
+      pass: false,
+    };
 
-  const [result] = await db.query(`INSERT INTO ${table_name} (name, date, start_time, end_time, hours) VALUES (?, ?, ?, ?, ?)`, [
-    name, date, start_time, end_time, hours
-  ]);
+  const [result] = await db.query(
+    `INSERT INTO ${table_name} (name, date, start_time, end_time, hours) VALUES (?, ?, ?, ?, ?)`,
+    [name, date, start_time, end_time, hours]
+  );
   const id = result?.insertId;
-  const record = id && await getBookingById(id);
+  const record = id && (await getBookingById(id));
   return { data: record, message: "success", pass: true };
 }
 
-//update record in table 
+//update record in table
 async function updateBooking(payload) {
   const id = payload.id;
   delete payload.id;
-  const parameters = Object.keys(payload).length && Object.keys(payload).map(item => payload[item]);
+  const parameters =
+    Object.keys(payload).length &&
+    Object.keys(payload).map((item) => payload[item]);
   parameters.push(id);
-  const [result] = await db.query(`UPDATE ${table_name} SET name = ?, date = ?, hours= ? WHERE id = ?`, parameters)
-  const record = result?.affectedRows && await getBookingById(id);
+  const [result] = await db.query(
+    `UPDATE ${table_name} SET name = ?, date = ?, hours= ? WHERE id = ?`,
+    parameters
+  );
+  const record = result?.affectedRows && (await getBookingById(id));
   return record;
 }
 
-//delete record from table 
+//delete record from table
 async function deleteBooking(id) {
   const [result] = await db.query(`DELETE FROM ${table_name} WHERE id = ?`, [
     id,
@@ -68,8 +85,7 @@ async function deleteBooking(id) {
   return result.affectedRows;
 }
 
-
-//check time slot availability in databse 
+//check time slot availability in databse
 async function checkAvailability(date, startTime, endTime) {
   const query = `
     SELECT *
@@ -89,17 +105,10 @@ async function checkAvailability(date, startTime, endTime) {
     endTime,
     startTime,
     startTime,
-    endTime
+    endTime,
   ]);
 
   return rows.length === 0;
 }
 
-
-export {
-  getBooking,
-  getBookingById,
-  addBooking,
-  updateBooking,
-  deleteBooking
-}
+export { getBooking, getBookingById, addBooking, updateBooking, deleteBooking };
