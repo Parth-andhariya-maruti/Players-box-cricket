@@ -6,9 +6,15 @@ import {
   getBookingById,
   updateBooking,
 } from "./database.js";
+import cors from "cors";
+
 const app = express();
 const port = process.env.NODE_PORT;
+const corsOptions = {
+  origin: "*",
+};
 
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.listen(port, () => {
