@@ -7,21 +7,15 @@ dotenv.config();
 const table_name = process.env.TABLE_NAME;
 
 //mysql database connection code
-const db = mysql.createPool({
-  host: process.env.HOST,
-  user: process.env.USER_NAME,
-  // port: process.env.PORT,
-  password: process.env.PASSWORD,
-  database: process.env.DATABASE,
-  timezone: "Z",
-});
-
-db.getConnection((err, conn) => {
-  if (err) console.log(err);
-  console.log("Database Connected successfully");
-});
-
-db.promise();
+const db = mysql
+  .createPool({
+    host: process.env.HOST,
+    user: process.env.USER_NAME,
+    password: process.env.PASSWORD,
+    database: process.env.DATABASE,
+    timezone: "Z",
+  })
+  .promise();
 
 //get table data
 async function getBooking() {
