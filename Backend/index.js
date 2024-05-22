@@ -9,7 +9,7 @@ import {
 import cors from "cors";
 
 const app = express();
-const port = process.env.NODE_PORT;
+const port = process.env.NODE_PORT || 3001; //port-binding
 const corsOptions = {
   origin: "*",
 };
